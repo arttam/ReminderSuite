@@ -3,7 +3,7 @@ project(Server)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(Boost 1.62.0 REQUIRED system)
+find_package(Boost 1.63.0 REQUIRED system)
 if (NOT Boost_FOUND)
     message(FATAL_ERROR "Could not find boost!")
 endif()
