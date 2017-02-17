@@ -4,6 +4,12 @@
 #include <utility>
 #include <boost/asio.hpp>
 
+// Get running path
+#include <limits.h>
+#include <unistd.h>
+// File exists?
+#include <sys/stat.h>
+
 #include "server.h"
 
 using boost::asio::ip::tcp;
@@ -33,11 +39,17 @@ Server::Server(unsigned short port, const char *rdbType, const char *rdbPath)
     , upDL(nullptr, dlDeleter)
 {
 
-    //std::unique_ptr<void, decltype(dlDeleter)> upDL;
-    upDL = std::unique_ptr<void, void (*)(void*)>(dlopen(libPath, RTLD_LAZY), dlDeleter);
+	// Try to find library either in current folder or ../lib/ folder, faile otherwise
+	if (!setLibraryPath(rdbType)) {
+		std::string _err{"Failed to find DataProvider library for "};
+		_err.append(rdbType);
+		throw std::runtime_error(_err);
+	}
+	
+    upDL = std::unique_ptr<void, void (*)(void*)>(dlopen(libraryPath_.c_str(), RTLD_LAZY), dlDeleter);
     if (!upDL) {
         std::string _err{"Failed to open DataProvider library: "};
-        _err.append(libPath);
+        _err.append(libraryPath_);
         throw std::runtime_error(_err);
     }
 
@@ -105,4 +117,31 @@ void Server::do_await_stop()
             acceptor_.close();
         }
     );
+}
+
+bool Server::setLibraryPath(const char *rdbType)
+{
+	std::string _type{rdbType};
+
+	char result[ PATH_MAX ];
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+	std::string _exePath(result, (count > 0) ? count : 0);
+	std::string _libName;
+
+	if (_type == "file") {
+		_libName.assign("libDataProvider.so");
+	}
+	else if (_type == "sqlite") {
+		_libName.assign("libSQLiteProvider.so");
+	}
+	else {
+		return false;
+	}
+
+	struct stat buffer;
+	if (stat(_exePath.c_str(), &buffer) == 0) {
+		// Exists
+		return true;
+	}
+	return false;
 }

@@ -10,7 +10,7 @@
 #include "session.h"
 #include "../../DataProvider/src/DBLibrary.h"
 
-const char libPath[] = "/home/art/git/ReminderSuite/DataProvider/cmake-build-debug/libDataProvider.so";
+const char libName[] = "libDataProvider.so";
 
 using boost::asio::ip::tcp;
 
@@ -25,9 +25,12 @@ class Server
     tcp::socket socket_;
     boost::asio::signal_set signals_;
 
+	std::string libraryPath_;
     DBLibrary *dlLibrary;
     std::unique_ptr<void, void (*)(void *)> upDL;
     std::function<destroy_t> f_destroy;
+
+	bool setLibraryPath(const char *rdbType);
 
     void do_accept();
     void do_await_stop();
