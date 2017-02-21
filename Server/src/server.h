@@ -8,7 +8,7 @@
 #include <signal.h>
 
 #include "session.h"
-#include "../../DataProvider/src/DBLibrary.h"
+#include "../../DataProvider/DPFactory/DBLibrary.h"
 
 const char libName[] = "libDataProvider.so";
 

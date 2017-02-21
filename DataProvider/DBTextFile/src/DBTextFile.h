@@ -5,7 +5,7 @@
 #ifndef FIRST_TEST_DBTEXTFILE_H
 #define FIRST_TEST_DBTEXTFILE_H
 #include <vector>
-#include "../DBLibrary.h"
+#include "../../DPInterface.h"
 #include "entry.h"
 
 class DBTextFile: public DBLibrary {

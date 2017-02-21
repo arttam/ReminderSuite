@@ -50,6 +50,8 @@ Server::Server(unsigned short port, const char *rdbType, const char *rdbPath)
     if (!upDL) {
         std::string _err{"Failed to open DataProvider library: "};
         _err.append(libraryPath_);
+		_err.append("; Reason: ");
+		_err.append(dlerror());
         throw std::runtime_error(_err);
     }
 
@@ -126,10 +128,15 @@ bool Server::setLibraryPath(const char *rdbType)
 	char result[ PATH_MAX ];
 	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
 	std::string _exePath(result, (count > 0) ? count : 0);
+	if (_exePath.empty())
+		return false;
+
+	_exePath.erase(_exePath.find_last_of('/'));
+
 	std::string _libName;
 
 	if (_type == "file") {
-		_libName.assign("libDataProvider.so");
+		_libName.assign("libTextFileProvider.so");
 	}
 	else if (_type == "sqlite") {
 		_libName.assign("libSQLiteProvider.so");
@@ -139,9 +146,19 @@ bool Server::setLibraryPath(const char *rdbType)
 	}
 
 	struct stat buffer;
-	if (stat(_exePath.c_str(), &buffer) == 0) {
+	std::string _currTest = _exePath + "/" + _libName;
+	if (stat(_currTest.c_str(), &buffer) == 0) {
 		// Exists
+		libraryPath_.assign(_currTest);
 		return true;
 	}
+	
+	_currTest = _exePath + "/../lib/" + _libName;
+	if (stat(_currTest.c_str(), &buffer) == 0) {
+		// Exists
+		libraryPath_.assign(_currTest);
+		return true;
+	}
+
 	return false;
 }

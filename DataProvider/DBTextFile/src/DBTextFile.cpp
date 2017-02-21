@@ -6,6 +6,18 @@
 #include "DBTextFile.h"
 #include "filehandler.h"
 
+extern "C" DBLibrary *create(const std::string type, const std::string dbPath) {
+    if (type == "file") {
+        return dynamic_cast<DBLibrary*>( new DBTextFile(dbPath) );
+    }
+
+    return nullptr;
+}
+
+extern "C" void destroy(DBLibrary* dbl) {
+    delete dbl;
+}
+
 std::string DBTextFile::fields() {
     std::ostringstream _oss;
     std::copy(fields_.begin(), fields_.end(), std::ostream_iterator<std::string>(_oss, ":"));

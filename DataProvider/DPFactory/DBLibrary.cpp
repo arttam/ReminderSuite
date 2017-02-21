@@ -2,7 +2,7 @@
 // Created by art on 28/12/16.
 //
 #include "DBLibrary.h"
-#include "DBTextFile/DBTextFile.h"
+#include "../DBTextFile/src/DBTextFile.h"
 
 extern "C" DBLibrary *create(const std::string type, const std::string dbPath) {
     if (type == "file") {

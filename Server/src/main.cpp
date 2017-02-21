@@ -23,10 +23,26 @@ constexpr char serverDaemonName[] = "ndp_daemon";
 int main(int argc, char* argv[])
 {
     if (argc < 4) {
-        std::cerr << "Usage: ndp <port> <dataProviderType> <dataPath>\n";
+        std::cerr << "Usage: reminder-dp <port> <dataProviderType> <dataPath>\n";
         exit(EXIT_FAILURE);
     }
 
+	// Just want to debug, no need for daemon
+	if (argc == 5 && argv[4][0] == 'd') {
+		try {
+			Server s(std::atoi(argv[1]), argv[2], argv[3]);
+			s.run();
+		}
+		catch (std::exception& e) {
+			std::cerr << "Exception thrown during server session" << std::endl;
+			std::cerr << e.what() << std::endl;
+		}
+		std::cerr << "Server job done, leaving" << std::endl;
+
+		return 0;
+	}
+
+	// Run as daemon
     pid_t parentPID = fork();
     if (parentPID < 0) {
         std::cerr << "Failed to fork from parent process, leaving" << std::endl;
