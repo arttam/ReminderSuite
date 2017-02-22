@@ -6,12 +6,8 @@
 #include "DBTextFile.h"
 #include "filehandler.h"
 
-extern "C" DBLibrary *create(const std::string type, const std::string dbPath) {
-    if (type == "file") {
-        return dynamic_cast<DBLibrary*>( new DBTextFile(dbPath) );
-    }
-
-    return nullptr;
+extern "C" DBLibrary *create(const std::string dbPath) {
+	return dynamic_cast<DBLibrary*>( new DBTextFile(dbPath) );
 }
 
 extern "C" void destroy(DBLibrary* dbl) {

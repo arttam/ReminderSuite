@@ -68,7 +68,7 @@ Server::Server(unsigned short port, const char *rdbType, const char *rdbPath)
         throw std::runtime_error(dlsym_error);
     }
 
-    dlLibrary = f_create(rdbType, rdbPath_);
+    dlLibrary = f_create(rdbPath_);
     if (dlLibrary == nullptr) {
         throw std::runtime_error("Cannot create DataProvider library instance");
     }
@@ -139,7 +139,7 @@ bool Server::setLibraryPath(const char *rdbType)
 		_libName.assign("libTextFileProvider.so");
 	}
 	else if (_type == "sqlite") {
-		_libName.assign("libSQLiteProvider.so");
+		_libName.assign("libDBSQLiteProvider.so");
 	}
 	else {
 		return false;

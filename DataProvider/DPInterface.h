@@ -23,6 +23,6 @@ public:
     virtual bool save() = 0;
 };
 
-using create_t = DBLibrary* (const std::string, const std::string);
+using create_t = DBLibrary* (const std::string);
 using destroy_t = void (DBLibrary*);
 #endif //FIRST_TEST_DBLIBRARY_H

@@ -10,8 +10,11 @@ all: reminder-dp
 reminder-dp: $(OBJ)
 	$(CC) $^ $(LFLAGS) -o $(BIN)/$@
 
-obj/%.o: src/%.cpp
+obj/%.o: src/%.cpp | obj
 	$(CC) $(CFLAGS) $< -o $@
+
+obj:
+	mkdir obj
 
 clean:
 	rm $(OBJ) $(BIN)/reminder-dp
