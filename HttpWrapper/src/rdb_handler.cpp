@@ -1,6 +1,7 @@
 #include "rdb_handler.hpp"
 #include "../../ClientLib/src/library.h"
 #include <vector>
+#include <memory>
 // DEBUG only
 #include <iostream>
 
@@ -25,8 +26,8 @@ bool rdb_handler::isValidCall(const std::string& request)
 
 bool rdb_handler::parse(const std::string& request)
 {
-	DataClient *_dc = createClient("localhost", "9000");
-	if (_dc == nullptr) {
+	std::unique_ptr<DataClient, std::function<void(DataClient*)> > pDC(createClient("localhost", "9000"),[](DataClient* p) { destroyClient(p); } );
+	if (!pDC) {
 		std::cout << "Failed to obtain DataClient via createClient call" << std::endl;
 		return false;
 	}
@@ -37,17 +38,12 @@ bool rdb_handler::parse(const std::string& request)
 	if (request.compare(5, 3, "get") == 0) {
 		_param.assign(request.substr(4));
 
-		if (!_dc->executeCmd(_param, _result)) {
-			// Add unique_ptr for this !!!!
-			destroyClient(_dc);
+		if (!pDC->executeCmd(_param, _result)) {
 			return false;	
 		}
 
 		for(auto &resLine: _result)
 			reply_.append(resLine).append("\r\n");
-
-		// Add unique_ptr for this !!!!
-		destroyClient(_dc);
 
 		return true;
 	}
