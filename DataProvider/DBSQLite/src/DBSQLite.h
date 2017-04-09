@@ -11,26 +11,7 @@
 #include <iostream>
 #include <fstream>
 
-auto dbDeleter = [](sqlite3 *db) { 
-
-	std::ofstream _dbgOut("/tmp/really_closed");
-	_dbgOut << "Really closed" << std::endl;
-	_dbgOut.flush();
-	_dbgOut.close();
-
-	sqlite3_close(db); 
-};
-
-void closeDB(sqlite3 *pDB) 
-{
-	std::ofstream _dbgOut("/tmp/really_closed");
-	_dbgOut << "Really closed" << std::endl;
-	_dbgOut.flush();
-	_dbgOut.close();
-
-	sqlite3_close(pDB); 
-
-};
+auto dbDeleter = [](sqlite3 *db) { sqlite3_close(db); };
 
 class DBSQLite: public DBLibrary
 {
@@ -38,12 +19,20 @@ class DBSQLite: public DBLibrary
 	std::string dbPath_;
 	std::vector<std::string> fields_;
 	std::vector<std::vector<std::string> > data_;
-	std::unique_ptr<sqlite3, void(*)(sqlite3*)> db_;
+
+	using dbHandler = std::unique_ptr<sqlite3, decltype(dbDeleter)>;
+	dbHandler  db_;
+	dbHandler  worker_;
 
 	bool openDB();
 
 public:
-    DBSQLite(const std::string dbPath):dbPath_{dbPath}, db_{nullptr, closeDB} {}
+    DBSQLite(const std::string dbPath)
+		: dbPath_{dbPath}
+		, db_{nullptr, dbDeleter}
+		, worker_{nullptr, dbDeleter}
+	{}
+
     virtual ~DBSQLite() {}
 
     std::string fields() override;

@@ -105,7 +105,7 @@ void Session::parseRequest(std::size_t len)
             }
         }
         else {
-            std::string _response = pDB->get(_request.at(1));
+            std::string _response = pDB->get(_request.at(1), _request.size() > 2 ? _request.at(2) : "");
             if (_response.empty()) {
                 _cmd.insert(0, "ERROR: Not found: ");
                 std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
