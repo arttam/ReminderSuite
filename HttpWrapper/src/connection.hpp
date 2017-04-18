@@ -2,7 +2,7 @@
 // connection.hpp
 // ~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@
 
 #include <array>
 #include <memory>
-#include <asio.hpp>
+#include <boost/asio.hpp>
 #include "reply.hpp"
 #include "request.hpp"
 #include "request_handler.hpp"
@@ -33,7 +33,7 @@ public:
   connection& operator=(const connection&) = delete;
 
   /// Construct a connection with the given socket.
-  explicit connection(asio::ip::tcp::socket socket,
+  explicit connection(boost::asio::ip::tcp::socket socket,
       connection_manager& manager, request_handler& handler);
 
   /// Start the first asynchronous operation for the connection.
@@ -50,7 +50,7 @@ private:
   void do_write();
 
   /// Socket for the connection.
-  asio::ip::tcp::socket socket_;
+  boost::asio::ip::tcp::socket socket_;
 
   /// The manager for this connection.
   connection_manager& connection_manager_;

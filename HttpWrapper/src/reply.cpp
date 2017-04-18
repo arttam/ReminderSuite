@@ -2,7 +2,7 @@
 // reply.cpp
 // ~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -49,44 +49,44 @@ const std::string bad_gateway =
 const std::string service_unavailable =
   "HTTP/1.0 503 Service Unavailable\r\n";
 
-asio::const_buffer to_buffer(reply::status_type status)
+boost::asio::const_buffer to_buffer(reply::status_type status)
 {
   switch (status)
   {
   case reply::ok:
-    return asio::buffer(ok);
+    return boost::asio::buffer(ok);
   case reply::created:
-    return asio::buffer(created);
+    return boost::asio::buffer(created);
   case reply::accepted:
-    return asio::buffer(accepted);
+    return boost::asio::buffer(accepted);
   case reply::no_content:
-    return asio::buffer(no_content);
+    return boost::asio::buffer(no_content);
   case reply::multiple_choices:
-    return asio::buffer(multiple_choices);
+    return boost::asio::buffer(multiple_choices);
   case reply::moved_permanently:
-    return asio::buffer(moved_permanently);
+    return boost::asio::buffer(moved_permanently);
   case reply::moved_temporarily:
-    return asio::buffer(moved_temporarily);
+    return boost::asio::buffer(moved_temporarily);
   case reply::not_modified:
-    return asio::buffer(not_modified);
+    return boost::asio::buffer(not_modified);
   case reply::bad_request:
-    return asio::buffer(bad_request);
+    return boost::asio::buffer(bad_request);
   case reply::unauthorized:
-    return asio::buffer(unauthorized);
+    return boost::asio::buffer(unauthorized);
   case reply::forbidden:
-    return asio::buffer(forbidden);
+    return boost::asio::buffer(forbidden);
   case reply::not_found:
-    return asio::buffer(not_found);
+    return boost::asio::buffer(not_found);
   case reply::internal_server_error:
-    return asio::buffer(internal_server_error);
+    return boost::asio::buffer(internal_server_error);
   case reply::not_implemented:
-    return asio::buffer(not_implemented);
+    return boost::asio::buffer(not_implemented);
   case reply::bad_gateway:
-    return asio::buffer(bad_gateway);
+    return boost::asio::buffer(bad_gateway);
   case reply::service_unavailable:
-    return asio::buffer(service_unavailable);
+    return boost::asio::buffer(service_unavailable);
   default:
-    return asio::buffer(internal_server_error);
+    return boost::asio::buffer(internal_server_error);
   }
 }
 
@@ -99,20 +99,20 @@ const char crlf[] = { '\r', '\n' };
 
 } // namespace misc_strings
 
-std::vector<asio::const_buffer> reply::to_buffers()
+std::vector<boost::asio::const_buffer> reply::to_buffers()
 {
-  std::vector<asio::const_buffer> buffers;
+  std::vector<boost::asio::const_buffer> buffers;
   buffers.push_back(status_strings::to_buffer(status));
   for (std::size_t i = 0; i < headers.size(); ++i)
   {
     header& h = headers[i];
-    buffers.push_back(asio::buffer(h.name));
-    buffers.push_back(asio::buffer(misc_strings::name_value_separator));
-    buffers.push_back(asio::buffer(h.value));
-    buffers.push_back(asio::buffer(misc_strings::crlf));
+    buffers.push_back(boost::asio::buffer(h.name));
+    buffers.push_back(boost::asio::buffer(misc_strings::name_value_separator));
+    buffers.push_back(boost::asio::buffer(h.value));
+    buffers.push_back(boost::asio::buffer(misc_strings::crlf));
   }
-  buffers.push_back(asio::buffer(misc_strings::crlf));
-  buffers.push_back(asio::buffer(content));
+  buffers.push_back(boost::asio::buffer(misc_strings::crlf));
+  buffers.push_back(boost::asio::buffer(content));
   return buffers;
 }
 

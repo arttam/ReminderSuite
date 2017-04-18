@@ -2,7 +2,7 @@
 // reply.hpp
 // ~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@
 
 #include <string>
 #include <vector>
-#include <asio.hpp>
+#include <boost/asio.hpp>
 #include "header.hpp"
 
 namespace http {
@@ -52,7 +52,7 @@ struct reply
   /// Convert the reply into a vector of buffers. The buffers do not own the
   /// underlying memory blocks, therefore the reply object must remain valid and
   /// not be changed until the write operation has completed.
-  std::vector<asio::const_buffer> to_buffers();
+  std::vector<boost::asio::const_buffer> to_buffers();
 
   /// Get a stock reply.
   static reply stock_reply(status_type status);

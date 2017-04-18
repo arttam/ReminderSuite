@@ -2,7 +2,7 @@
 // server.cpp
 // ~~~~~~~~~~
 //
-// Copyright (c) 2003-2015 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2016 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -36,10 +36,10 @@ server::server(const std::string& address, const std::string& port,
   do_await_stop();
 
   // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-  asio::ip::tcp::resolver resolver(io_service_);
-  asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
+  boost::asio::ip::tcp::resolver resolver(io_service_);
+  boost::asio::ip::tcp::endpoint endpoint = *resolver.resolve({address, port});
   acceptor_.open(endpoint.protocol());
-  acceptor_.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
   acceptor_.bind(endpoint);
   acceptor_.listen();
 
@@ -58,7 +58,7 @@ void server::run()
 void server::do_accept()
 {
   acceptor_.async_accept(socket_,
-      [this](std::error_code ec)
+      [this](boost::system::error_code ec)
       {
         // Check whether the server was stopped by a signal before this
         // completion handler had a chance to run.
@@ -80,7 +80,7 @@ void server::do_accept()
 void server::do_await_stop()
 {
   signals_.async_wait(
-      [this](std::error_code /*ec*/, int /*signo*/)
+      [this](boost::system::error_code /*ec*/, int /*signo*/)
       {
         // The server is stopped by cancelling all outstanding asynchronous
         // operations. Once all operations have finished the io_service::run()
