@@ -27,8 +27,30 @@ std::string DBSQLite::fields()
 {
 	std::string _response{""};
 
-	for(auto &fieldName: fields_)
-		_response.append(fieldName).append(":");
+	char *_exeError = nullptr;
+
+	dbRC_ = sqlite3_exec(
+			worker_.get(), 
+			"pragma table_info('reminders');", 
+			/*
+			[](void *pDest, int, char **rowData, char **) {
+				std::string *pResp = reinterpret_cast<std::string*>(pDest);
+				pResp->append(rowData[1]).append(":");
+				return 0;
+			},
+			*/
+			[](void *pDest, int, char **rowData, char **) { 
+				reinterpret_cast<std::string*>(pDest)->append(rowData[1]).append(":"); 
+				return 0; 
+			},
+			&_response, 
+			&_exeError
+	);
+
+	if (dbRC_) {
+		std::cerr << "Failed to get fields: " << _exeError << std::endl;
+		sqlite3_free(_exeError);
+	}
 
 	return _response;
 }
@@ -63,6 +85,7 @@ std::vector<std::string> DBSQLite::get()
 			<< _exeError
 			<< std::endl;
 
+		sqlite3_free(_exeError);
 	}
 	return _response;
 }

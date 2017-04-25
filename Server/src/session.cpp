@@ -171,8 +171,8 @@ void Session::parseRequest(std::size_t len)
         _cmd.insert(0, "ERROR: Unrecognized command: ");
         std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
     }
-    response_.push_back('\r');
-    response_.push_back('\n');
+//    response_.push_back('\r');
+//    response_.push_back('\n');
     do_write();
 }
 

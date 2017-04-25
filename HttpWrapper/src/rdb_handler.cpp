@@ -52,6 +52,18 @@ bool rdb_handler::parse(const std::string& request)
 		reply_.assign("SET:");
 		return true;
 	}
+	else if (request.compare(5,6, "fields") == 0) {
+		_param.assign(request.substr(4));
+
+		if (!pDC->executeCmd(_param, _result)) {
+			return false;	
+		}
+
+		for(auto &resLine: _result)
+			reply_.append(resLine).append("\r\n");
+
+		return true;
+	}
 	return false;
 }
 
