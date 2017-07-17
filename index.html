@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+	<title>Reminders</title>
+</head>
+<body onload="loadAll()">
+	<div id='list'>
+	</div>
+
+	<script type="text/javascript">
+		function loadAll()
+		{
+			var request = new XMLHttpRequest();
+			request.open('GET', './rdb/get', true);
+			request.onreadystatechange = function() {
+				var list = document.getElementById('list');
+				if (this.readyState == 4 && this.status == 200) {
+					list.innerHTML = this.responseText;
+				}
+				else {
+					list.innerHTML = 'Error';
+				}
+			};
+
+			request.send();
+		}
+	</script>
+</body>
+</html>

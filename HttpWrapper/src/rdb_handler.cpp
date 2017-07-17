@@ -17,7 +17,7 @@ bool rdb_handler::isRDBcall(const std::string& request)
 
 bool rdb_handler::isValidCall(const std::string& request)
 {
-	for (auto &command: rdb_handler::commands_) {
+	for (const auto &command: rdb_handler::commands_) {
 		if (request.compare(5, command.length(), command) == 0) 
 			return true;
 	}
@@ -42,7 +42,7 @@ bool rdb_handler::parse(const std::string& request)
 			return false;	
 		}
 
-		for(auto &resLine: _result)
+		for(const auto &resLine: _result)
 			reply_.append(resLine).append("\r\n");
 
 		return true;
@@ -59,7 +59,7 @@ bool rdb_handler::parse(const std::string& request)
 			return false;	
 		}
 
-		for(auto &resLine: _result)
+		for(const auto &resLine: _result)
 			reply_.append(resLine).append("\r\n");
 
 		return true;
