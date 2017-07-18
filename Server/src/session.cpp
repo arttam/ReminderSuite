@@ -98,7 +98,7 @@ void Session::parseRequest(std::size_t len)
         if (_request.size() < 2) {
             // Get all entries
             std::vector<std::string> _response = pDB->get();
-            for(auto &line: _response) {
+            for(const auto &line: _response) {
                 std::copy(line.begin(), line.end(), std::back_inserter(response_));
                 response_.push_back('\r');
                 response_.push_back('\n');
