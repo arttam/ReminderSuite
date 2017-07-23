@@ -2,6 +2,7 @@
 #include "../../ClientLib/src/library.h"
 #include <vector>
 #include <memory>
+#include <algorithm>
 // DEBUG only
 #include <iostream>
 
@@ -17,11 +18,17 @@ bool rdb_handler::isRDBcall(const std::string& request)
 
 bool rdb_handler::isValidCall(const std::string& request)
 {
-	for (const auto &command: rdb_handler::commands_) {
-		if (request.compare(5, command.length(), command) == 0) 
-			return true;
+	std::string _param(request.substr(5));
+	if ( commands_.end() == 
+		 std::find_if( 
+			commands_.begin(), 
+			commands_.end(), 
+			[&_param] (const std::string& cmd) { return std::equal(cmd.begin(), cmd.end(), _param.begin()); }) ) 
+	{
+		std::cerr << "Command '" << _param << "' not supported" << std::endl;
+		return false;
 	}
-	return false;
+	return true;
 }
 
 bool rdb_handler::parse(const std::string& request)
@@ -32,39 +39,16 @@ bool rdb_handler::parse(const std::string& request)
 		return false;
 	}
 
-	std::string _param;
+	std::string _param(request.substr(4));
 	std::vector<std::string> _result;
-
-	if (request.compare(5, 3, "get") == 0) {
-		_param.assign(request.substr(4));
-
-		if (!pDC->executeCmd(_param, _result)) {
-			return false;	
-		}
-
-		for(const auto &resLine: _result)
-			reply_.append(resLine).append("\r\n");
-
-		return true;
+	if (!pDC->executeCmd(_param, _result)) {
+		return false;
 	}
-	else if (request.compare(5, 3, "set") == 0) {
-		_param.assign(request.substr(4)); 
-		reply_.assign("SET:");
-		return true;
-	}
-	else if (request.compare(5,6, "fields") == 0) {
-		_param.assign(request.substr(4));
 
-		if (!pDC->executeCmd(_param, _result)) {
-			return false;	
-		}
+	for(const auto &resLine: _result)
+		reply_.append(resLine).append("\r\n");
 
-		for(const auto &resLine: _result)
-			reply_.append(resLine).append("\r\n");
-
-		return true;
-	}
-	return false;
+	return true;
 }
 
 const std::string& rdb_handler::getResponse() const

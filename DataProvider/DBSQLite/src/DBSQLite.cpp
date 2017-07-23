@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <regex>
 
 extern "C" DBLibrary *create(const std::string dbPath) {
 	return dynamic_cast<DBLibrary*>( new DBSQLite(dbPath) );
@@ -122,6 +123,68 @@ std::string DBSQLite::get(const std::string name, const std::string field)
 
 bool DBSQLite::set(const std::string name, const std::string csv_values) 
 {
+	std::vector<std::string> _fieldValues;
+	std::regex _colon(":");
+
+	std::sregex_token_iterator _sBegin(csv_values.begin(), csv_values.end(), _colon, -1);
+	std::sregex_token_iterator _sEnd;
+
+	std::copy(_sBegin, _sEnd, std::back_inserter(_fieldValues));
+	// Sanity check, now only on count of field values ...
+	if (!fields_.empty()) {
+		if (fields_.size() != _fieldValues.size()) {
+			std::cerr << "Fields count does not match tables one, input: '" << csv_values << "'" << std::endl;
+			return false;
+		}
+	}
+
+	std::stringstream _ssSQL;
+	_ssSQL << "insert into reminders values ('";
+	std::copy(_fieldValues.begin(), _fieldValues.end(), std::ostream_iterator<std::string>(_ssSQL, "','"));
+
+	std::string _setSQL(_ssSQL.str());
+	_setSQL.replace(_setSQL.length() - 2, 2, ");");
+
+	sqlite3_stmt *_stmt;
+	const char *_stmtTail;
+
+	dbRC_ = sqlite3_prepare(
+		worker_.get(),
+		_setSQL.c_str(),
+		_setSQL.size(),
+		&_stmt,
+		&_stmtTail
+	);
+	if (dbRC_ != SQLITE_OK) {
+		std::cerr << "Failed to prepare insert statement" << std::endl
+			<< _setSQL << std::endl;
+		return false;
+	}
+
+	dbRC_ = sqlite3_step(_stmt);
+	if (dbRC_ == SQLITE_OK || dbRC_ == SQLITE_DONE) {
+		sqlite3_finalize(_stmt);
+		std::cerr << "Insert successful " << std::endl;
+		return true;
+	}
+
+	switch(dbRC_) {
+		case SQLITE_BUSY:
+			std::cerr << "Database is busy, leaving" << std::endl;
+			break;
+		case SQLITE_ERROR:
+			std::cerr << "Error inserting new record" << std::endl;
+			break;
+		case SQLITE_MISUSE:
+			std::cerr << "SQL statement missuse" << std::endl;
+			break;
+		default:
+			std::cerr << "SQL error: " << dbRC_ << std::endl;
+			break;
+	}
+	std::cerr << "Failed while trying: " << std::endl
+		<< _setSQL << std::endl;
+
 	return false;
 }
 
@@ -167,43 +230,6 @@ bool DBSQLite::read()
 	}
 	// Closing file-system database
 	sqlite3_close(db_.get());
-
-	// Reading DB into memory
-	/*
-	auto _populator = [](void* pThis, int colNum, char **rowData, char **rowColumns) {
-		DBSQLite* self = reinterpret_cast<DBSQLite*>(pThis);
-		if (self->fields_.empty()) {
-			for(int colNr=0; colNr < colNum; ++colNr) {
-				self->fields_.push_back(rowColumns[colNr]);
-			}
-		}
-
-		std::vector<std::string> _row;
-		for(int colNr=0; colNr < colNum; ++colNr) {
-			_row.push_back(rowData[colNr]);
-		}
-		self->data_.push_back(std::move(_row));
-
-		return 0;
-	};
-
-	char *_exeError = nullptr;
-	dbRC_ = sqlite3_exec(
-			worker_.get(), 
-			"select * from reminders", 
-			_populator,
-			this,
-			&_exeError
-	);
-
-	if (dbRC_) {
-		std::cerr << "Failed to exec SQL: "
-			<< _exeError
-			<< std::endl;
-
-		return false;
-	}
-	*/
 
 	return true;
 }
