@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <sstream>
 // DEBUG only
 #include <iostream>
 
@@ -45,8 +46,9 @@ bool rdb_handler::parse(const std::string& request)
 		return false;
 	}
 
-	for(const auto &resLine: _result)
-		reply_.append(resLine).append("\r\n");
+	std::stringstream _sstr;
+	std::copy(_result.begin(), _result.end(), std::ostream_iterator<std::string>(_sstr, "\r\n"));
+	reply_.assign(_sstr.str());
 
 	return true;
 }

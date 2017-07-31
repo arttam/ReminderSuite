@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <future>
 #include <sqlite3.h>
 
 // While debugging
@@ -15,7 +16,8 @@ auto dbDeleter = [](sqlite3 *db) { sqlite3_close(db); };
 
 class DBSQLite: public DBLibrary
 {
-	int dbRC_;
+	std::shared_future<bool> fieldsReady_;
+	mutable int dbRC_;
 	std::string dbPath_;
 	std::vector<std::string> fields_;
 	std::vector<std::vector<std::string> > data_;
@@ -25,6 +27,8 @@ class DBSQLite: public DBLibrary
 	dbHandler  worker_;
 
 	bool openDB();
+	bool getFields();
+	bool alreadyExists(const std::string& name) const;
 
 public:
     DBSQLite(const std::string dbPath)

@@ -24,36 +24,40 @@ bool DBSQLite::openDB()
 	return true;
 }
 
-std::string DBSQLite::fields() 
+bool DBSQLite::getFields()
 {
-	std::string _response{""};
-
 	char *_exeError = nullptr;
 
 	dbRC_ = sqlite3_exec(
 			worker_.get(), 
 			"pragma table_info('reminders');", 
-			/*
-			[](void *pDest, int, char **rowData, char **) {
-				std::string *pResp = reinterpret_cast<std::string*>(pDest);
-				pResp->append(rowData[1]).append(":");
-				return 0;
-			},
-			*/
 			[](void *pDest, int, char **rowData, char **) { 
-				reinterpret_cast<std::string*>(pDest)->append(rowData[1]).append(":"); 
+				reinterpret_cast<std::vector<std::string>* >(pDest)->push_back(rowData[1]);
 				return 0; 
 			},
-			&_response, 
+			&fields_, 
 			&_exeError
 	);
 
 	if (dbRC_) {
 		std::cerr << "Failed to get fields: " << _exeError << std::endl;
 		sqlite3_free(_exeError);
+		return false;
 	}
 
-	return _response;
+	return true;
+}
+
+std::string DBSQLite::fields() 
+{
+	if (fieldsReady_.get()) {
+		std::ostringstream _ostr;
+		std::copy(fields_.begin(), fields_.end(), std::ostream_iterator<std::string>(_ostr, ":"));
+
+		return _ostr.str();
+	}
+
+	return std::string();
 }
 
 std::vector<std::string> DBSQLite::get() 
@@ -138,9 +142,15 @@ bool DBSQLite::set(const std::string name, const std::string csv_values)
 		}
 	}
 
+
 	std::stringstream _ssSQL;
-	_ssSQL << "insert into reminders values ('";
-	std::copy(_fieldValues.begin(), _fieldValues.end(), std::ostream_iterator<std::string>(_ssSQL, "','"));
+	if (alreadyExists(name)) {
+		_ssSQL << "update reminders set ";
+	}
+	else {
+		_ssSQL << "insert into reminders values ('";
+		std::copy(_fieldValues.begin(), _fieldValues.end(), std::ostream_iterator<std::string>(_ssSQL, "','"));
+	}
 
 	std::string _setSQL(_ssSQL.str());
 	_setSQL.replace(_setSQL.length() - 2, 2, ");");
@@ -231,6 +241,9 @@ bool DBSQLite::read()
 	// Closing file-system database
 	sqlite3_close(db_.get());
 
+	// initiating async field read
+	fieldsReady_ = std::future<bool>( std::async(std::launch::async, [this](){ return getFields(); }) );
+
 	return true;
 }
 
@@ -255,4 +268,29 @@ bool DBSQLite::save()
 	}
 
 	return true;
+}
+
+bool DBSQLite::alreadyExists(const std::string& name) const
+{
+	std::string stmt{"select count(name) from reminders where name='"};
+	stmt.append(name).append("';'");
+
+	std::string _result;
+	char *_exeError = nullptr;
+	dbRC_ = sqlite3_exec(
+			worker_.get(),
+			stmt.c_str(),
+			[](void *resPtr, int colNum, char **rowData, char **rowColumns) {
+				std::string *sPtr = reinterpret_cast<std::string*>(resPtr);
+				sPtr->append(rowData[0]);
+
+				return 0;
+			},
+			&_result,
+			&_exeError
+	);
+
+	sqlite3_free(reinterpret_cast<void*>(_exeError));
+
+	return (_result.compare("0") != 0);
 }
