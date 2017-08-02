@@ -3,6 +3,7 @@
 #include <iterator>
 #include <sstream>
 #include <regex>
+#include <numeric>
 
 extern "C" DBLibrary *create(const std::string dbPath) {
 	return dynamic_cast<DBLibrary*>( new DBSQLite(dbPath) );
@@ -142,18 +143,21 @@ bool DBSQLite::set(const std::string name, const std::string csv_values)
 		}
 	}
 
-
-	std::stringstream _ssSQL;
+	std::string _setSQL;
 	if (alreadyExists(name)) {
-		_ssSQL << "update reminders set ";
-	}
-	else {
-		_ssSQL << "insert into reminders values ('";
-		std::copy(_fieldValues.begin(), _fieldValues.end(), std::ostream_iterator<std::string>(_ssSQL, "','"));
-	}
+		int _currField = 0;
+		_setSQL = std::accumulate(fields_.begin(), fields_.end(), std::string{"update reminders set "},
+				[&_fieldValues, &_currField](std::string resStmt, std::string field) { return resStmt.append(field).append(" = '").append(_fieldValues[_currField++]).append("', "); }  );
 
-	std::string _setSQL(_ssSQL.str());
-	_setSQL.replace(_setSQL.length() - 2, 2, ");");
+		_setSQL.erase(_setSQL.length() - 2, 2);
+		_setSQL.append(" where name='").append(name).append("';");
+		}
+	else {
+		_setSQL = std::accumulate(_fieldValues.begin(), _fieldValues.end(), std::string{"insert into reminders values ("}, 
+				[](std::string resStmt, const std::string& value) { return resStmt.append("'").append(value).append("', "); } );
+
+		_setSQL.replace(_setSQL.length() - 2, 2, ");");
+	}
 
 	sqlite3_stmt *_stmt;
 	const char *_stmtTail;
@@ -166,7 +170,7 @@ bool DBSQLite::set(const std::string name, const std::string csv_values)
 		&_stmtTail
 	);
 	if (dbRC_ != SQLITE_OK) {
-		std::cerr << "Failed to prepare insert statement" << std::endl
+		std::cerr << "Failed to prepare insert/set statement: " << std::endl
 			<< _setSQL << std::endl;
 		return false;
 	}
