@@ -18,19 +18,56 @@
 
 #include "server.h"
 
+// Program Options support
+#include <fstream>
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 constexpr char serverDaemonName[] = "ndp_daemon";
 
 int main(int argc, char* argv[])
 {
-    if (argc < 4) {
-        std::cerr << "Usage: reminder-dp <port> <dataProviderType> <dataPath>\n";
-        exit(EXIT_FAILURE);
-    }
+	unsigned short port = 9000;
+	std::string dpType;
+	std::string dataPath;
+	std::string configFile{"reminder-dp.ini"};
+	bool isDebug = false;
+
+	po::options_description data_provider_config("Data Provider options");
+	data_provider_config.add_options()
+		("help,H", "You need: port, provider_type and data_path\nEither by command line or config file\n")
+		("port,p", po::value<unsigned short>(&port), "Communication port")
+		("type,T", po::value<std::string>(&dpType), "Data Provider type")
+		("path,P", po::value<std::string>(&dataPath), "Data location path")
+		("debug,D", po::value<bool>(&isDebug)->default_value(false), "Is instance invoked in debug mode")
+		("config,C", po::value<std::string>(&configFile), "Configuration file")
+	;
+	
+	po::variables_map config_vars;
+	po::store(po::parse_command_line(argc, argv, data_provider_config), config_vars);
+	po::notify(config_vars);
+
+	std::ifstream configIni(configFile.c_str());
+	if (configIni) {
+		po::store(po::parse_config_file(configIni, data_provider_config), config_vars);
+		po::notify(config_vars);
+	}
+	
+	if (config_vars.count("help")) {
+		std::cout << data_provider_config << std::endl;
+		return 0;
+	}
+
+	if (port <=0 || dpType.empty() || dataPath.empty()) {
+		std::cout << "Not enough parameters to start server" << std::endl << std::endl;
+		std::cout << data_provider_config << std::endl;
+		return 0;
+	}
 
 	// Just want to debug, no need for daemon
-	if (argc == 5 && argv[4][0] == 'd') {
+	if (isDebug) {
 		try {
-			Server s(std::atoi(argv[1]), argv[2], argv[3]);
+			Server s(port, dpType, dataPath);
 			s.run();
 		}
 		catch (std::exception& e) {
@@ -90,12 +127,11 @@ int main(int argc, char* argv[])
     syslog(LOG_NOTICE, "Starting server");
 
     try {
-        Server s(std::atoi(argv[1]), argv[2], argv[3]);
+        Server s(port, dpType, dataPath);
         s.run();
     }
     catch (std::exception& e) {
-        syslog(LOG_ERR, "Exception thrown during server session");
-        syslog(LOG_ERR, e.what());
+        syslog(LOG_ERR, "Exception thrown during server session: %s", e.what());
     }
     syslog(LOG_NOTICE, "Server job done, leaving");
     closelog();

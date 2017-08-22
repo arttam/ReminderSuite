@@ -30,13 +30,13 @@ class Server
     std::unique_ptr<void, void (*)(void *)> upDL;
     std::function<destroy_t> f_destroy;
 
-	bool setLibraryPath(const char *rdbType);
+	bool setLibraryPath(std::string& rdbType);
 
     void do_accept();
     void do_await_stop();
 
 public:
-    Server(unsigned short port, const char *rdbType, const char *rdbPath);
+    Server(unsigned short port, std::string& rdbType, std::string& rdbPath);
     ~Server();
 
     void run();

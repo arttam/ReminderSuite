@@ -30,7 +30,7 @@ std::function<T> loadFunction(const char *fName, const char *errPtr, void *pHand
     return _f;
 }
 
-Server::Server(unsigned short port, const char *rdbType, const char *rdbPath)
+Server::Server(unsigned short port, std::string& rdbType, std::string& rdbPath)
     : rdbPath_(rdbPath)
     , io_service_()
     , acceptor_(io_service_, tcp::endpoint(tcp::v4(), port))
@@ -121,10 +121,8 @@ void Server::do_await_stop()
     );
 }
 
-bool Server::setLibraryPath(const char *rdbType)
+bool Server::setLibraryPath(std::string& rdbType)
 {
-	std::string _type{rdbType};
-
 	char result[ PATH_MAX ];
 	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
 	std::string _exePath(result, (count > 0) ? count : 0);
@@ -135,10 +133,10 @@ bool Server::setLibraryPath(const char *rdbType)
 
 	std::string _libName;
 
-	if (_type == "file") {
+	if (rdbType == "file") {
 		_libName.assign("libTextFileProvider.so");
 	}
-	else if (_type == "sqlite") {
+	else if (rdbType == "sqlite") {
 		_libName.assign("libDBSQLiteProvider.so");
 	}
 	else {
