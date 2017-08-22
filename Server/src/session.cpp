@@ -31,7 +31,6 @@ void Session::do_write()
 {
     // Every respnse should be finished with empty line
     // i.e. only containing \r\n sequence
-    response_.push_back('\r');
     response_.push_back('\n');
 
     auto self(shared_from_this());
@@ -77,7 +76,6 @@ void Session::parseRequest(std::size_t len)
     {
         std::string _err(errMsg);
         std::copy(_err.begin(), _err.end(), std::back_inserter(e_response_));
-        e_response_.push_back('\r');
         e_response_.push_back('\n');
     };
 
@@ -100,7 +98,6 @@ void Session::parseRequest(std::size_t len)
             std::vector<std::string> _response = pDB->get();
             for(const auto &line: _response) {
                 std::copy(line.begin(), line.end(), std::back_inserter(response_));
-                response_.push_back('\r');
                 response_.push_back('\n');
             }
         }
@@ -171,8 +168,6 @@ void Session::parseRequest(std::size_t len)
         _cmd.insert(0, "ERROR: Unrecognized command: ");
         std::copy(_cmd.begin(), _cmd.end(), std::back_inserter(response_));
     }
-//    response_.push_back('\r');
-//    response_.push_back('\n');
     do_write();
 }
 

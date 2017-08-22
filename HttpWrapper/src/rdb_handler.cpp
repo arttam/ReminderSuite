@@ -98,17 +98,20 @@ bool rdb_handler::parse(const std::string& request)
 
 		std::accumulate(_result.begin(), _result.end(), std::string{""}, 
 			[&_children, &_colon, &_fields, &_sEnd](const std::string&, const std::string& row) {
-				std::sregex_token_iterator _sBegin(row.begin(), row.end(), _colon, -1);
-				std::vector<std::string>::const_iterator _fNameIt = _fields.begin();
+				// Skip empty row, usually last one, for human readability of server output
+				if (!row.empty()) {
+					std::sregex_token_iterator _sBegin(row.begin(), row.end(), _colon, -1);
+					std::vector<std::string>::const_iterator _fNameIt = _fields.begin();
 
-				pt::ptree _rowNode;
-				std::accumulate(_sBegin, _sEnd, std::string{""}, 
-					[&_rowNode, &_fNameIt](const std::string&, const std::string value) {
-						_rowNode.put(*_fNameIt++, value);
-						return value;
-					}
-				);
-				_children.push_back(std::make_pair("", _rowNode));
+					pt::ptree _rowNode;
+					std::accumulate(_sBegin, _sEnd, std::string{""}, 
+						[&_rowNode, &_fNameIt](const std::string&, const std::string value) {
+							_rowNode.put(*_fNameIt++, value);
+							return value;
+						}
+					);
+					_children.push_back(std::make_pair("", _rowNode));
+				}
 
 				return row;
 			}
