@@ -18,6 +18,10 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+// Global configuration
+#include "config.h"
+DataProviderConf dataProviderConf;
+
 int main(int argc, char** argv)
 {
 	unsigned short port;
@@ -25,13 +29,20 @@ int main(int argc, char** argv)
 	std::string docsRoot;
 	std::string configFile;
 
+	// Data provider details
+	unsigned short dataPort;
+	std::string dataHost;
+	
+
 	po::options_description server_config("Data Provider options");
 	server_config.add_options()
 		("help,H", "Usage: reminder-http <address> <port> <doc_root>\n")
+		("config,C", po::value<std::string>(&configFile)->default_value("reminder-http.ini"), "Configuration file")
 		("port,p", po::value<unsigned short>(&port), "HTTP server port")
 		("host,h", po::value<std::string>(&host)->default_value("localhost"), "HTTP sever address")
-		("path,P", po::value<std::string>(&docsRoot), "Site root folder")
-		("config,C", po::value<std::string>(&configFile)->default_value("reminder-http.ini"), "Configuration file")
+		("root,R", po::value<std::string>(&docsRoot), "Site root folder")
+		("datahost,D", po::value<std::string>(&dataHost), "Data Provider address")
+		("dataport,P", po::value<unsigned short>(&dataPort), "Data Provider communication port")
 	;
 	
 	po::variables_map config_vars;
@@ -49,11 +60,14 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (port == 0 || host.empty() || docsRoot.empty()) {
+	if (port == 0 || dataPort == 0 || dataHost.empty() || host.empty() || docsRoot.empty()) {
 		std::cout << "Not enough parameters to start reminder http server" << std::endl << std::endl;
 		std::cout << server_config << std::endl;
 		return 0;
 	}
+
+	dataProviderConf.port = dataPort;
+	dataProviderConf.host = dataHost;
 
 	try
 	{

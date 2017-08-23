@@ -17,6 +17,11 @@
 #include <boost/property_tree/json_parser.hpp>
 namespace pt = boost::property_tree;
 
+// Configuration 
+#include "config.h"
+
+extern DataProviderConf dataProviderConf;
+
 
 const std::set<std::string> rdb_handler::commands_{"get", "set", "delete", "fields", "commit"};
 
@@ -45,7 +50,12 @@ bool rdb_handler::isValidCall(const std::string& request)
 
 bool rdb_handler::parse(const std::string& request)
 {
-	std::unique_ptr<DataClient, std::function<void(DataClient*)> > pDC(createClient("localhost", "9000"),[](DataClient* p) { destroyClient(p); } );
+	std::unique_ptr<DataClient, std::function<void(DataClient*)> > pDC(
+			createClient(dataProviderConf.host.c_str(), 
+			std::to_string(dataProviderConf.port).c_str()),
+			[](DataClient* p) { destroyClient(p); } 
+	);
+
 	if (!pDC) {
 		std::cout << "Failed to obtain DataClient via createClient call" << std::endl;
 		return false;
