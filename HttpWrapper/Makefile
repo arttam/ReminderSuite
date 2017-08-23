@@ -1,6 +1,6 @@
 CC=clang++
 CFLAGS=-std=c++14 -Wall -c
-LFLAGS=-L../build/lib -lboost_system -lpthread -ldl -lRDBClient -Wl,-rpath='$$ORIGIN/../lib/'
+LFLAGS=-L../build/lib -lboost_system -lpthread -lboost_program_options -ldl -lRDBClient -Wl,-rpath='$$ORIGIN/../lib/'
 SRC=$(wildcard src/*.cpp)
 OBJ=$(addprefix obj/,$(notdir $(SRC:.cpp=.o)))
 BIN=../build/bin
