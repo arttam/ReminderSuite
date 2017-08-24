@@ -15,10 +15,31 @@
 			request.onreadystatechange = function() {
 				var list = document.getElementById('list');
 				if (this.readyState == 4 && this.status == 200) {
-					list.innerHTML = this.responseText;
-				}
-				else {
-					list.innerHTML = 'Error';
+					var htag = document.createElement('h2');
+					htag.innerHTML = "List";
+					list.appendChild(htag);
+				
+					var container = JSON.parse(this.responseText);
+					var reminders = container.reminders;
+					var tbl = document.createElement('table');
+
+					for(i=0; i<reminders.length; i++) {
+						var row = reminders[i];
+						var rname = document.createElement('td');
+						rname.textContent = row.name;
+						console.log('Added: '+row.name);
+
+						var rtype = document.createElement('td');
+						rtype.textContent = row.type;
+
+						var trow = document.createElement('tr');
+						trow.appendChild(rname);
+						trow.appendChild(rtype);
+						
+						tbl.appendChild(trow);
+					}
+
+					list.appendChild(tbl);
 				}
 			};
 
