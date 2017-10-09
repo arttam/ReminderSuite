@@ -52,11 +52,13 @@ void request_handler::handle_request(const request& req, reply& rep)
 			if (_rh.parse(request_path)) {
 				rep.status = reply::ok;
 				rep.content.append(_rh.getResponse());
-				rep.headers.resize(2);
+				rep.headers.resize(3);
 				rep.headers[0].name = "Content-Length";
 				rep.headers[0].value = std::to_string(_rh.getResponse().length());
 				rep.headers[1].name = "Content-Type";
 				rep.headers[1].value = "application/json";
+				rep.headers[2].name = "Access-Control-Allow-Origin";
+				rep.headers[2].value = "*";
 				return;
 			}
 			else {
